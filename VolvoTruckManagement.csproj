@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="Model\Truck.cs" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.*" />
