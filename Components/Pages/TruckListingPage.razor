@@ -1,9 +1,89 @@
-﻿@page "/trucks"
+﻿@page "/"
+@using VolvoTruckManagement.Model
 
 <PageTitle>Trucks</PageTitle>
-
+<MudBreadcrumbs Items="_breadCrumbitems"></MudBreadcrumbs>
 <MudText Typo="Typo.h3" GutterBottom="true">Trucks</MudText>
+<MudGrid>
+    <MudItem xs="4">
+        <MudTextField @bind-Value="Search" Label="Search" Variant="Variant.Outlined"
+                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                      AdornmentColor="Color.Dark" />
+    </MudItem>
+    <MudItem xs="2">
+        <MudButton Variant="Variant.Outlined" Color="Color.Dark">
+            <MudIcon Icon="@Icons.Material.Filled.FilterList" />
+            Filter
+        </MudButton>
+    </MudItem>
+    <MudItem xs="6" Class="d-flex justify-end">
+        <MudButton Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
+            Add New Truck
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+<MudSpacer />
+<MudDivider Class="mb-4 my-2" />
+
+<MudGrid>
+    @foreach (var truck in Trucks)
+    {
+        <MudItem xs="12" sm="6" md="4" lg="3">
+            <MudCard Class="h-full shadow-md hover:shadow-lg transition-all">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">@truck.Brand</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary"> #@truck.TruckNumber</MudText>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    <MudText><b>VIN:</b> @truck.VIN</MudText>
+                    <MudText><b>Build Year:</b> @truck.BuildDate</MudText>
+                    @if (!string.IsNullOrWhiteSpace(truck.Comment))
+                    {
+                        <MudText><b>Comment:</b> @truck.Comment</MudText>
+                    }
+                </MudCardContent>
+
+                <MudCardActions>
+                    <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="@(() => ViewDetails(truck))">
+                        View Details
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
 
 @code {
-    
+    public string Search { get; set; }
+    private List<BreadcrumbItem> _breadCrumbitems = new()
+    {
+        new BreadcrumbItem("Dashboard", href: "/"),
+        new BreadcrumbItem("Trucks", href: "/", disabled: true)
+    };
+    public int Spacing { get; set; } = 6;
+
+    private List<Truck> Trucks = new();
+
+    protected override void OnInitialized()
+    {
+        // Simulate dynamic data (could come from database or API)
+        Trucks = new List<Truck>
+        {
+            new() { TruckNumber = 101, Brand = "Volvo FH16", VIN = "1HGBH41JXMN109186", BuildDate = 2020, Comment = "Long haul unit" },
+            new() { TruckNumber = 102, Brand = "Volvo FMX", VIN = "2FTRX18W1XCA12345", BuildDate = 2019, Comment = "Construction truck" },
+            new() { TruckNumber = 103, Brand = "Volvo FE", VIN = "3N1BC13E88L456789", BuildDate = 2022, Comment = "City delivery" },
+            new() { TruckNumber = 101, Brand = "Volvo FH16", VIN = "1HGBH41JXMN109186", BuildDate = 2020, Comment = "Long haul unit" },
+            new() { TruckNumber = 102, Brand = "Volvo FMX", VIN = "2FTRX18W1XCA12345", BuildDate = 2019, Comment = "Construction truck" },
+            new() { TruckNumber = 103, Brand = "Volvo FE", VIN = "3N1BC13E88L456789", BuildDate = 2022, Comment = "City delivery" },
+        };
+    }
+
+    private void ViewDetails(Truck truck)
+    {
+        // You can open a dialog or navigate to a details page
+        Console.WriteLine($"Viewing truck: {truck.TruckNumber} - {truck.Brand}");
+    }
+
 }
