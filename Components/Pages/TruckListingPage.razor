@@ -17,7 +17,7 @@
         </MudButton>
     </MudItem>
     <MudItem xs="6" Class="d-flex justify-end">
-        <MudButton Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
+        <MudButton onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
             Add New Truck
         </MudButton>
     </MudItem>
@@ -26,34 +26,48 @@
 <MudSpacer />
 <MudDivider Class="mb-4 my-2" />
 
-<MudGrid>
-    @foreach (var truck in Trucks)
-    {
-        <MudItem xs="12" sm="6" md="4" lg="3">
-            <MudCard Class="h-full shadow-md hover:shadow-lg transition-all">
-                <MudCardHeader>
-                    <MudText Typo="Typo.h6">@truck.Brand</MudText>
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary"> #@truck.TruckNumber</MudText>
-                </MudCardHeader>
+@if (Trucks == null || !Trucks.Any())
 
-                <MudCardContent>
-                    <MudText><b>VIN:</b> @truck.VIN</MudText>
-                    <MudText><b>Build Year:</b> @truck.BuildDate</MudText>
-                    @if (!string.IsNullOrWhiteSpace(truck.Comment))
-                    {
-                        <MudText><b>Comment:</b> @truck.Comment</MudText>
-                    }
-                </MudCardContent>
+{
 
-                <MudCardActions>
-                    <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="@(() => ViewDetails(truck))">
-                        View Details
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-    }
-</MudGrid>
+    <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary" Class="mt-6">
+        There are no trucks registered yet. You can start by clicking the Add New Truck
+        button to add your first truck.
+    </MudText>
+
+}
+else
+{
+    <MudGrid>
+        @foreach (var truck in Trucks)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Class="h-full shadow-md hover:shadow-lg transition-all">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">@truck.Brand</MudText>
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary"> #@truck.TruckNumber</MudText>
+                    </MudCardHeader>
+
+                    <MudCardContent>
+                        <MudText><b>VIN:</b> @truck.VIN</MudText>
+                        <MudText><b>Build Year:</b> @truck.BuildDate</MudText>
+                        @if (!string.IsNullOrWhiteSpace(truck.Comment))
+                        {
+                            <MudText><b>Comment:</b> @truck.Comment</MudText>
+                        }
+                    </MudCardContent>
+
+                    <MudCardActions>
+                        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="@(() => ViewDetails(truck))">
+                            View Details
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
 
 @code {
     public string Search { get; set; }
@@ -86,4 +100,16 @@
         Console.WriteLine($"Viewing truck: {truck.TruckNumber} - {truck.Brand}");
     }
 
+    private void AddNewTruck()
+    {
+        // Example: add a dummy truck for now
+        Trucks.Add(new Truck
+        {
+            TruckNumber = 111,
+            Brand = "Volvo",
+            VIN = "1HGBH41JXMN109186",
+            BuildDate = 2024,
+            Comment = "New Truck"
+        });
+    }
 }
