@@ -119,9 +119,15 @@ else
         StateHasChanged();
     }
 
-    private void ViewDetails(Truck truck)
+    private async Task ViewDetails(Truck truck)
     {
-        
+        DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters<TruckDetailDialog>
+        {
+            { x => x.Truck, truck }
+        };
+        var dialog = await DialogService.ShowAsync<TruckDetailDialog>("Add New Truck", parameters ,_maxWidth);
+        var result = await dialog.Result;
     }
 
     private async Task AddNewTruck()

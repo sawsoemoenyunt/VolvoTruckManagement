@@ -1,0 +1,45 @@
+﻿@using VolvoTruckManagement.Model
+@using VolvoTruckManagement.Services
+@inject ITruckService TruckService
+@inject MudBlazor.ISnackbar Snackbar
+
+<MudDialog FullWidth="true" MaxWidth="MaxWidth.Small">
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.h6">@Truck.Brand (#@Truck.TruckNumber)</MudText>
+            <MudText><b>VIN:</b> @Truck.VIN</MudText>
+            <MudText><b>Build Year:</b> @Truck.BuildDate</MudText>
+            @if (!string.IsNullOrWhiteSpace(Truck.Comment))
+            {
+                <MudText><b>Comment:</b> @Truck.Comment</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Error" OnClick="ConfirmDelete">Delete</MudButton>
+        <MudButton Color="Color.Dark" OnClick="Cancel">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public Truck Truck { get; set; }
+
+    private async void ConfirmDelete()
+    {
+        // bool? result = await MudDialog.ShowMessageBox(
+        //     "Confirm Delete",
+        //     $"Are you sure you want to delete truck #{Truck.TruckNumber}?",
+        //     yesText: "Yes", cancelText: "No");
+
+        // if (result == true)
+        // {
+        //     TruckService.DeleteTruck(Truck.TruckNumber);
+        //     Snackbar.Add($"Truck #{Truck.TruckNumber} deleted successfully!", Severity.Success);
+        //     MudDialog.Close(DialogResult.Ok(true));
+        // }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
