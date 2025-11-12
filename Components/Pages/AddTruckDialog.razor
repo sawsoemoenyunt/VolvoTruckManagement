@@ -58,8 +58,10 @@
     </DialogContent>
 
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
-        <MudButton Color="Color.Dark" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Dark" Variant="Variant.Filled" OnClick="Save" Disabled="@isSaving" Loading="@isSaving">
+            @(isSaving ? "Saving..." : "Save")
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -143,8 +145,13 @@
         }
     }
 
+    private bool isSaving = false;
+
     private async Task Save()
     {
+        isSaving = true; // Start loading
+        StateHasChanged(); // Refresh UI
+
         await form.Validate();
 
         // Run manual validations
@@ -154,11 +161,14 @@
 
         if (!string.IsNullOrEmpty(vinError) || !string.IsNullOrEmpty(buildDateError) || !string.IsNullOrEmpty(commentError))
         {
+            isSaving = false; // Stop loading
             return; // stop save
         }
 
         if (isValid)
         {
+            // Simulate a small delay for UX
+            await Task.Delay(500);
             Truck.BuildDate = buildDate?.Year ?? DateTime.Today.Year;
             TruckService.CreateTruck(Truck);
 
@@ -167,6 +177,8 @@
             await form.ResetAsync();
             MudDialog.Close(DialogResult.Ok(true));
         }
+
+        isSaving = false; // Stop loading
     }
 
     private void Cancel() => MudDialog.Cancel();
