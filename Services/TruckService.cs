@@ -23,9 +23,13 @@ namespace VolvoTruckManagement.Services
 
         public void CreateTruck(Truck truck)
         {
-            // Assign and add
-            truck.TruckNumber = GetNextAvailableUniqueTruckNumber();
-            _trucks.Add(truck);
+            Truck _truck = new Truck();
+            _truck.TruckNumber = truck.TruckNumber;
+            _truck.Brand = truck.Brand;
+            _truck.VIN = truck.VIN;
+            _truck.BuildDate = truck.BuildDate;
+            _truck.Comment = truck.Comment;
+            _trucks.Add(_truck);
         }
 
         public bool DeleteTruck(int truckNumber)

@@ -98,6 +98,7 @@ else
         // Trucks = TruckService.GetTrucks();
         TruckService = ServiceProvider.GetRequiredService<ITruckService>();
         Trucks = TruckService.GetTrucks();
+        UpdatePagedTrucks();
     }
 
     private void PageChanged(int i)
@@ -109,8 +110,13 @@ else
 
     private async void UpdatePagedTrucks()
     {
-        Console.WriteLine("Current Page" + (currentPage - 1));
         pagedTrucks = Trucks.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+        foreach (var pt in pagedTrucks)
+        {
+            Console.WriteLine("Number "+ pt.TruckNumber);
+            Console.WriteLine("Brand "+ pt.Brand);
+        }
+        StateHasChanged();
     }
 
     private void ViewDetails(Truck truck)
