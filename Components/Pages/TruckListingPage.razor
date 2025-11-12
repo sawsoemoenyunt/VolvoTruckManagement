@@ -11,24 +11,50 @@
 @if (Trucks.Count > 0)
 {
 
-    <MudGrid>
-        <MudItem xs="4">
-            <MudTextField @bind-Value="Search" Label="Search" Variant="Variant.Outlined"
-            Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
-            AdornmentColor="Color.Dark" />
+    <MudGrid AlignItems="Center" Class="mb-4">
+        <!-- Search Field -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudTextField @bind-Value="Search"
+                          Label="Search"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          AdornmentColor="Color.Dark"
+                          Immediate="true"
+                          OnImmediateValueChanged="OnSearchChanged" />
         </MudItem>
-        <MudItem xs="2">
-            <MudButton Variant="Variant.Outlined" Color="Color.Dark">
-                <MudIcon Icon="@Icons.Material.Filled.FilterList" />
-                Filter
+
+        <!-- Sort Dropdown -->
+        <MudItem xs="12" sm="3" md="4">
+            <MudSelect Label="Sort By" @bind-Value="sortField" Variant="Variant.Outlined" OnValueChanged="OnSortChanged">
+                <MudSelectItem Value="@("TruckNumber")">Truck #</MudSelectItem>
+                <MudSelectItem Value="@("Brand")">Brand</MudSelectItem>
+                <MudSelectItem Value="@("Year")">Year</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+
+        <!-- Sort Order Toggle -->
+        @* <MudItem xs="12" sm="3" md="2" Class="d-flex">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ToggleSortOrder" Class="align-self-center">
+                @if (sortAscending)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" />
+                }
             </MudButton>
-        </MudItem>
-        <MudItem xs="6" Class="d-flex justify-end">
-            <MudButton @onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
+        </MudItem> *@
+
+        <!-- Add New Truck Button -->
+        <MudItem xs="12" sm="12" md="4" Class="d-flex justify-end">
+            <MudButton @onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Medium">
                 Add New Truck
             </MudButton>
         </MudItem>
     </MudGrid>
+
 }
 <MudSpacer />
 <MudDivider Class="mb-4 my-2" />
@@ -98,6 +124,9 @@ else
     // Holds user input for the search/filter functionality
     public string Search { get; set; }
 
+    private string sortField = "TruckNumber"; // default sort
+    private bool sortAscending = true;        // default order
+
     // Breadcrumb navigation items for the page header
     private List<BreadcrumbItem> _breadCrumbitems = new()
     {
@@ -121,7 +150,7 @@ else
     private int pageSize = 6;
 
     // Dynamically calculated total number of pages
-    private int totalPages => (int)Math.Ceiling((double)Trucks.Count / pageSize);
+    private int totalPages;
 
     /// <summary>
     /// Called when the component is first initialized.
@@ -139,6 +168,52 @@ else
         UpdatePagedTrucks();
     }
 
+    private void ToggleSortOrder()
+    {
+        sortAscending = !sortAscending;
+        currentPage = 1;
+        UpdatePagedTrucks();
+    }
+
+    private void OnSortChanged(string field)
+    {
+        sortField = field;
+        currentPage = 1;
+        UpdatePagedTrucks();
+    }
+
+    private void OnSearchChanged(string value)
+    {
+        currentPage = 1;
+        UpdatePagedTrucks();
+    }
+
+
+    private void SortBy(string field)
+    {
+        if (sortField == field)
+        {
+            // If same field clicked again, toggle ascending/descending
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            // Switch to a new field, reset ascending
+            sortField = field;
+            sortAscending = true;
+        }
+
+        currentPage = 1; // reset to first page
+        UpdatePagedTrucks();
+    }
+
+    private string GetSortIcon(string field)
+    {
+        if (sortField != field) return "";
+        return sortAscending ? Icons.Material.Filled.ArrowUpward : Icons.Material.Filled.ArrowDownward;
+    }
+
+
     /// <summary>
     /// Handles pagination control changes.
     /// Updates the page number and refreshes the displayed list.
@@ -154,15 +229,37 @@ else
     /// </summary>
     private void UpdatePagedTrucks()
     {
-        // Skip records from previous pages and take only those for the current page
-        pagedTrucks = Trucks
+        // Filter trucks first
+        var filteredTrucks = Trucks
+            .Where(t => string.IsNullOrWhiteSpace(Search)
+                        || t.Brand.Contains(Search, StringComparison.OrdinalIgnoreCase)
+                        || t.VIN.Contains(Search, StringComparison.OrdinalIgnoreCase)
+                        || t.TruckNumber.ToString().Contains(Search))
+            .ToList();
+
+        // Sort based on field
+        filteredTrucks = sortField switch
+        {
+            "TruckNumber" => sortAscending ? filteredTrucks.OrderBy(t => t.TruckNumber).ToList()
+                                           : filteredTrucks.OrderByDescending(t => t.TruckNumber).ToList(),
+            "Brand" => sortAscending ? filteredTrucks.OrderBy(t => t.Brand).ToList()
+                                           : filteredTrucks.OrderByDescending(t => t.Brand).ToList(),
+            "BuildDate" => sortAscending ? filteredTrucks.OrderBy(t => t.BuildDate).ToList()
+                                           : filteredTrucks.OrderByDescending(t => t.BuildDate).ToList(),
+            _ => filteredTrucks
+        };
+
+        // Apply pagination
+        pagedTrucks = filteredTrucks
             .Skip((currentPage - 1) * pageSize)
             .Take(pageSize)
             .ToList();
 
-        // Re-render the component to reflect updated data
+        totalPages = (int)Math.Ceiling((double)filteredTrucks.Count / pageSize);
+
         StateHasChanged();
     }
+
 
     /// <summary>
     /// Opens the Truck Detail dialog for viewing and managing an individual truck.
