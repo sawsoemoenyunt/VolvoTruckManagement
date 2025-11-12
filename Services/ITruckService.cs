@@ -5,10 +5,12 @@ namespace VolvoTruckManagement.Services
 {
     public interface ITruckService
     {
-        Task<ServiceResponse<List<Truck>>> GetTrucksAsync();
-        Task<ServiceResponse<Truck>> GetTruckAsync(int truckNumber);
-        Task<ServiceResponse<Truck>> CreateTruck(Truck truck);
-        Task<ServiceResponse<Truck>> UpdateTruck(Truck product);
-        Task<ServiceResponse<bool>> DeleteTruck(int truckNumber);
+        int GetNextAvailableUniqueTruckNumber();
+        List<Truck> GetTrucks();
+        Truck? GetTruck(int truckNumber);
+        void CreateTruck(Truck truck);
+        Truck UpdateTruck(Truck truck);
+        bool DeleteTruck(int truckNumber);
+
     }
 }

@@ -4,29 +4,61 @@ namespace VolvoTruckManagement.Services
 {
     public class TruckService : ITruckService
     {
-        public Task<ServiceResponse<Truck>> CreateTruck(Truck truck)
-        {
-            throw new NotImplementedException();
+        private readonly List<Truck> _trucks = new();
+
+        public int GetNextAvailableUniqueTruckNumber() {
+            // Get all used numbers (1–99)
+            var usedNumbers = _trucks.Select(t => t.TruckNumber).ToList();
+
+            // Find the first available number from 1 to 99
+            int nextNumber = Enumerable.Range(1, 99)
+                .FirstOrDefault(n => !usedNumbers.Contains(n));
+
+            // Safety check (in case all 99 are used)
+            if (nextNumber == 0)
+                throw new InvalidOperationException("Maximum truck limit (99) reached.");
+            
+            return nextNumber;
         }
 
-        public Task<ServiceResponse<bool>> DeleteTruck(int truckNumber)
+        public void CreateTruck(Truck truck)
         {
-            throw new NotImplementedException();
+            // Assign and add
+            truck.TruckNumber = GetNextAvailableUniqueTruckNumber();
+            _trucks.Add(truck);
         }
 
-        public Task<ServiceResponse<Truck>> GetTruckAsync(int truckNumber)
+        public bool DeleteTruck(int truckNumber)
         {
-            throw new NotImplementedException();
+            int removedCount = _trucks.RemoveAll(t => t.TruckNumber == truckNumber);
+            return removedCount > 0;
         }
 
-        public Task<ServiceResponse<List<Truck>>> GetTrucksAsync()
+        public Truck? GetTruck(int truckNumber)
         {
-            throw new NotImplementedException();
+            return _trucks.FirstOrDefault(t => t.TruckNumber == truckNumber);
         }
 
-        public Task<ServiceResponse<Truck>> UpdateTruck(Truck product)
+
+        public List<Truck> GetTrucks()
         {
-            throw new NotImplementedException();
+            return _trucks;
         }
+
+        public Truck UpdateTruck(Truck truck)
+        {
+            var existingTruck = GetTruck(truck.TruckNumber);
+
+            if (existingTruck == null)
+                throw new KeyNotFoundException($"Truck with number {truck.TruckNumber} not found.");
+
+            existingTruck.Brand = truck.Brand;
+            existingTruck.VIN = truck.VIN;
+            existingTruck.BuildDate = truck.BuildDate;
+            existingTruck.Comment = truck.Comment;
+
+            return existingTruck;
+        }
+
     }
 }
