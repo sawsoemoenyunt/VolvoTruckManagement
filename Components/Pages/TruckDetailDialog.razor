@@ -33,7 +33,7 @@
         // Optional: use IDialogService.ShowMessageBox for popup confirmation
         var result = await DialogService.ShowMessageBox(
             "Confirm Delete",
-            $"Are you sure you want to delete truck #{Truck.TruckNumber}. VIN{Truck.VIN}?",
+            $"Are you sure you want to delete truck #{Truck.TruckNumber}. VIN Number : {Truck.VIN}?",
             yesText: "Yes", cancelText: "No");
 
         if (result == true)
