@@ -6,7 +6,7 @@
     <DialogContent>
         <MudForm @ref="form" Model="@Truck" @bind-IsValid="isValid">
             <MudStack Spacing="2">
-                <MudTextField @bind-Value="Truck.TruckNumber" Label="Truck Number" Variant="Variant.Outlined" ReadOnly="true" @bind-Value="@trackNumber"/>
+                <MudTextField @bind-Value="@truckNumber" Label="Truck Number" Variant="Variant.Outlined" ReadOnly="true" Disabled="true"/>
                 <MudTextField @bind-Value="Truck.Brand" Label="Brand" Variant="Variant.Outlined" />
                 <MudTextField @bind-Value="Truck.VIN" Label="VIN" Variant="Variant.Outlined" />
                 <MudTextField @bind-Value="Truck.BuildDate" Label="Build Year" Variant="Variant.Outlined" />
@@ -16,7 +16,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Save">Save</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Dark" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -27,10 +27,12 @@
     private MudForm form;
     private bool isValid;
     [Parameter] public Truck Truck { get; set; } = new Truck();
-    int trackNumber = 0;
+    int truckNumber = 0;
     protected override void OnInitialized()
     {
-        int trackNumber = TruckService.GetNextAvailableUniqueTruckNumber();
+        truckNumber = TruckService.GetNextAvailableUniqueTruckNumber();
+        Console.WriteLine(truckNumber);
+
     }
 
     private async Task Save()
@@ -45,7 +47,6 @@
             truck.BuildDate = 2025;
             truck.Comment = "New truck";
             TruckService.CreateTruck(truck);
-            Console.WriteLine("Truck added successfully.");
             await form.ResetAsync();
             MudDialog.Close(DialogResult.Ok(true));
         }
