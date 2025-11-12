@@ -75,67 +75,115 @@ else
 
 }
 
-
 @code {
+    // Injected service for managing trucks (create, read, delete, etc.)
     private ITruckService TruckService;
+
+    // Holds user input for the search/filter functionality
     public string Search { get; set; }
+
+    // Breadcrumb navigation items for the page header
     private List<BreadcrumbItem> _breadCrumbitems = new()
     {
         new BreadcrumbItem("Dashboard", href: "/"),
         new BreadcrumbItem("Trucks", href: "/", disabled: true)
     };
+
+    // Defines the spacing between grid elements (used by MudBlazor components)
     public int Spacing { get; set; } = 6;
 
+    // The full list of trucks loaded from the service
     private List<Truck> Trucks = new();
+
+    // Subset of trucks shown on the current page (for pagination)
     private List<Truck> pagedTrucks = new();
+
+    // Current pagination page (1-based index)
     private int currentPage = 1;
-    private int pageSize = 6; // Number of cards per page
+
+    // Number of trucks to display per page
+    private int pageSize = 6;
+
+    // Dynamically calculated total number of pages
     private int totalPages => (int)Math.Ceiling((double)Trucks.Count / pageSize);
 
+    /// <summary>
+    /// Called when the component is first initialized.
+    /// Loads truck data and prepares the first page of results.
+    /// </summary>
     protected override void OnInitialized()
     {
-        // Simulate dynamic data (could come from database or API)
-        // Trucks = TruckService.GetTrucks();
+        // Get the truck service from the dependency injection container
         TruckService = ServiceProvider.GetRequiredService<ITruckService>();
+
+        // Retrieve the full list of trucks
         Trucks = TruckService.GetTrucks();
+
+        // Prepare the first page for display
         UpdatePagedTrucks();
     }
 
+    /// <summary>
+    /// Handles pagination control changes.
+    /// Updates the page number and refreshes the displayed list.
+    /// </summary>
     private void PageChanged(int i)
     {
         currentPage = i;
         UpdatePagedTrucks();
     }
 
-
-    private async void UpdatePagedTrucks()
+    /// <summary>
+    /// Updates the currently displayed page of trucks based on pagination settings.
+    /// </summary>
+    private void UpdatePagedTrucks()
     {
-        pagedTrucks = Trucks.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
-        foreach (var pt in pagedTrucks)
-        {
-            Console.WriteLine("Number "+ pt.TruckNumber);
-            Console.WriteLine("Brand "+ pt.Brand);
-        }
+        // Skip records from previous pages and take only those for the current page
+        pagedTrucks = Trucks
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        // Re-render the component to reflect updated data
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Opens the Truck Detail dialog for viewing and managing an individual truck.
+    /// </summary>
+    /// <param name="truck">Truck object to view details for.</param>
     private async Task ViewDetails(Truck truck)
     {
+        // Dialog configuration for size and layout
         DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        // Pass the selected truck to the detail dialog as a parameter
         var parameters = new DialogParameters<TruckDetailDialog>
         {
             { x => x.Truck, truck }
         };
-        var dialog = await DialogService.ShowAsync<TruckDetailDialog>("Add New Truck", parameters ,_maxWidth);
+
+        // Open the dialog
+        var dialog = await DialogService.ShowAsync<TruckDetailDialog>("Truck Details", parameters, _maxWidth);
+
+        // Await the result (e.g., close or update)
         var result = await dialog.Result;
     }
 
+    /// <summary>
+    /// Opens the Add Truck dialog for creating a new truck entry.
+    /// After saving, updates the truck list and refreshes pagination.
+    /// </summary>
     private async Task AddNewTruck()
     {
+        // Dialog configuration for size and layout
         DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck", _maxWidth);    
+
+        // Open the Add Truck dialog
+        var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck", _maxWidth);
         var result = await dialog.Result;
 
+        // If the dialog wasn't canceled, refresh the list and UI
         if (!result.Canceled)
         {
             StateHasChanged();
@@ -143,3 +191,4 @@ else
         }
     }
 }
+
