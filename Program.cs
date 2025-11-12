@@ -1,10 +1,15 @@
 using MudBlazor.Services;
 using VolvoTruckManagement.Components;
+using VolvoTruckManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+// Register TruckService for DI
+builder.Services.AddSingleton<ITruckService,TruckService>();
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

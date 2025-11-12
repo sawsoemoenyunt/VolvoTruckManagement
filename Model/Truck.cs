@@ -1,4 +1,4 @@
-﻿namespace VolvoTruckManagement.Components.Model
+﻿namespace VolvoTruckManagement.Model
 {
     public class Truck
     {

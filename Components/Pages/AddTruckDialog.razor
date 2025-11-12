@@ -1,0 +1,173 @@
+﻿@using VolvoTruckManagement.Model
+@using VolvoTruckManagement.Services
+@inject ITruckService TruckService
+@inject MudBlazor.ISnackbar Snackbar
+
+<MudDialog FullWidth="true" MaxWidth="MaxWidth.Small">
+    <DialogContent>
+        <MudForm @ref="form" Model="@Truck" @bind-IsValid="isValid">
+            <MudStack Spacing="2">
+
+                <!-- Truck Number (auto-generated) -->
+                <MudTextField T="int" Label="Truck Number"
+                              @bind-Value="Truck.TruckNumber"
+                              ReadOnly="true" Disabled="true" />
+
+                <!-- Brand Dropdown -->
+                <MudSelect @bind-Value="Truck.Brand" Label="Brand" Required="true" RequiredError="Brand is required">
+                    <MudSelectItem Value="@("Volvo")">Volvo</MudSelectItem>
+                    <MudSelectItem Value="@("Mack")">Mack</MudSelectItem>
+                    <MudSelectItem Value="@("MD")">MD</MudSelectItem>
+                </MudSelect>
+
+                <!-- VIN TextField -->
+                <MudTextField Label="VIN" @bind-Value="Truck.VIN" Required="true"
+                              Immediate="true" OnBlur="ValidateVIN">
+                    <AdornmentEnd>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">17 characters, letters & numbers, exclude I/O/Q</MudText>
+                    </AdornmentEnd>
+                </MudTextField>
+                @if (!string.IsNullOrEmpty(vinError))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error">@vinError</MudText>
+                }
+
+                <!-- Build Date Year Picker -->
+                <MudDatePicker Label="Build Year" PickerVariant="PickerVariant.Inline"
+                               MaxDate="DateTime.Today" MinDate="@minBuildYear"
+                               Required="true" RequiredError="Build year is required" 
+                               DateChanged="OnBuildDateChanged" 
+                               OpenTo="OpenTo.Year" Views="Views.Year" FixMonth="1" FixDay="1" DateFormat="yyyy" />
+
+                @if (!string.IsNullOrEmpty(buildDateError))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error">@buildDateError</MudText>
+                }
+
+                <!-- Comment -->
+                <MudTextField @bind-Value="Truck.Comment" Label="Comment" Lines="5" 
+                              Immediate="true" OnBlur="ValidateComment" />
+
+                @if (!string.IsNullOrEmpty(commentError))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error">@commentError</MudText>
+                }
+
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
+        <MudButton Color="Color.Dark" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private MudForm form;
+    private bool isValid;
+
+    private Truck Truck = new Truck();
+
+    private DateTime? buildDate;
+    private DateTime minBuildYear = DateTime.Today.AddYears(-20); // max 20 years old
+
+    private string vinError = "";
+    private string buildDateError = "";
+    private string commentError = "";
+
+    protected override void OnInitialized()
+    {
+        // Auto-generate next available truck number
+        Truck.TruckNumber = TruckService.GetNextAvailableUniqueTruckNumber();
+    }
+
+    private void ValidateVIN(FocusEventArgs args)
+    {
+        vinError = "";
+        if (string.IsNullOrWhiteSpace(Truck.VIN))
+        {
+            vinError = "VIN is required.";
+            return;
+        }
+
+        if (Truck.VIN.Length != 17)
+        {
+            vinError = "VIN must be exactly 17 characters.";
+            return;
+        }
+
+        if (!Truck.VIN.All(c => char.IsLetterOrDigit(c) && !"IOQioq".Contains(c)))
+        {
+            vinError = "VIN can only contain letters & numbers, exclude I, O, Q.";
+            return;
+        }
+
+        // Check uniqueness
+        if (TruckService.GetTrucks().Any(t => t.VIN == Truck.VIN))
+        {
+            vinError = "This VIN already exists.";
+        }
+    }
+
+    private void OnBuildDateChanged(DateTime? date)
+    {
+        buildDateError = "";
+        buildDate = date;
+        if (buildDate.HasValue)
+        {
+            if (buildDate.Value.Year < minBuildYear.Year || buildDate.Value.Year > DateTime.Today.Year)
+            {
+                buildDateError = $"Build year must be between {minBuildYear.Year} and {DateTime.Today.Year}.";
+            }
+        }
+    }
+
+    private void ValidateComment(FocusEventArgs args)
+    {
+        commentError = "";
+        if (!string.IsNullOrWhiteSpace(Truck.Comment))
+        {
+            if (Truck.Comment.Length > 1000)
+            {
+                commentError = "Comment cannot exceed 1000 characters.";
+            }
+
+            if (!Truck.Comment.All(c => char.IsLetterOrDigit(c) || c == ' ' || c == '-' || c == '.'))
+            {
+                commentError = "Comment can only contain letters, numbers, space, dash or dot.";
+            }
+        }
+    }
+
+    private async Task Save()
+    {
+        await form.Validate();
+
+        // Run manual validations
+        ValidateVIN(null);
+        OnBuildDateChanged(buildDate);
+        ValidateComment(null);
+
+        if (!string.IsNullOrEmpty(vinError) || !string.IsNullOrEmpty(buildDateError) || !string.IsNullOrEmpty(commentError))
+        {
+            return; // stop save
+        }
+
+        if (isValid)
+        {
+            Truck.BuildDate = buildDate?.Year ?? DateTime.Today.Year;
+            TruckService.CreateTruck(Truck);
+
+            // 🔹 Show success alert
+            Snackbar.Add($"Truck #{Truck.TruckNumber} saved successfully!", Severity.Success);
+            await form.ResetAsync();
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

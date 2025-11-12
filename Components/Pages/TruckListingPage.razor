@@ -1,0 +1,145 @@
+﻿@page "/"
+@using VolvoTruckManagement.Model
+@using VolvoTruckManagement.Services
+@inject MudBlazor.IDialogService DialogService
+@inject IServiceProvider ServiceProvider
+
+<PageTitle>Trucks</PageTitle>
+<MudBreadcrumbs Items="_breadCrumbitems"></MudBreadcrumbs>
+<MudText Typo="Typo.h3" GutterBottom="true">Trucks</MudText>
+<MudGrid>
+    <MudItem xs="4">
+        <MudTextField @bind-Value="Search" Label="Search" Variant="Variant.Outlined"
+                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                      AdornmentColor="Color.Dark" />
+    </MudItem>
+    <MudItem xs="2">
+        <MudButton Variant="Variant.Outlined" Color="Color.Dark">
+            <MudIcon Icon="@Icons.Material.Filled.FilterList" />
+            Filter
+        </MudButton>
+    </MudItem>
+    <MudItem xs="6" Class="d-flex justify-end">
+        <MudButton @onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
+            Add New Truck
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+<MudSpacer />
+<MudDivider Class="mb-4 my-2" />
+
+@if (Trucks == null || !Trucks.Any())
+
+{
+
+    <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary" Class="mt-6">
+        There are no trucks registered yet. You can start by clicking the Add New Truck
+        button to add your first truck.
+    </MudText>
+
+}
+else
+{
+    <MudGrid>
+        @foreach (var truck in pagedTrucks)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Class="h-full shadow-md hover:shadow-lg transition-all">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">@truck.Brand</MudText>
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary"> #@truck.TruckNumber</MudText>
+                    </MudCardHeader>
+
+                    <MudCardContent>
+                        <MudText><b>VIN:</b> @truck.VIN</MudText>
+                        <MudText><b>Build Year:</b> @truck.BuildDate</MudText>
+                        @if (!string.IsNullOrWhiteSpace(truck.Comment))
+                        {
+                            <MudText><b>Comment:</b> @truck.Comment</MudText>
+                        }
+                    </MudCardContent>
+
+                    <MudCardActions>
+                        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="@(() => ViewDetails(truck))">
+                            View Details
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+        
+    </MudGrid>
+    <MudDivider Class="mb-4 my-2" />
+    <MudPagination Color="Color.Primary" Count="@totalPages" SelectedChanged="PageChanged" />
+
+}
+
+
+@code {
+    private ITruckService TruckService;
+    public string Search { get; set; }
+    private List<BreadcrumbItem> _breadCrumbitems = new()
+    {
+        new BreadcrumbItem("Dashboard", href: "/"),
+        new BreadcrumbItem("Trucks", href: "/", disabled: true)
+    };
+    public int Spacing { get; set; } = 6;
+
+    private List<Truck> Trucks = new();
+    private List<Truck> pagedTrucks = new();
+    private int currentPage = 1;
+    private int pageSize = 6; // Number of cards per page
+    private int totalPages => (int)Math.Ceiling((double)Trucks.Count / pageSize);
+
+    protected override void OnInitialized()
+    {
+        // Simulate dynamic data (could come from database or API)
+        // Trucks = TruckService.GetTrucks();
+        TruckService = ServiceProvider.GetRequiredService<ITruckService>();
+        Trucks = TruckService.GetTrucks();
+        UpdatePagedTrucks();
+    }
+
+    private void PageChanged(int i)
+    {
+        currentPage = i;
+        UpdatePagedTrucks();
+    }
+
+
+    private async void UpdatePagedTrucks()
+    {
+        pagedTrucks = Trucks.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+        foreach (var pt in pagedTrucks)
+        {
+            Console.WriteLine("Number "+ pt.TruckNumber);
+            Console.WriteLine("Brand "+ pt.Brand);
+        }
+        StateHasChanged();
+    }
+
+    private async Task ViewDetails(Truck truck)
+    {
+        DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters<TruckDetailDialog>
+        {
+            { x => x.Truck, truck }
+        };
+        var dialog = await DialogService.ShowAsync<TruckDetailDialog>("Add New Truck", parameters ,_maxWidth);
+        var result = await dialog.Result;
+    }
+
+    private async Task AddNewTruck()
+    {
+        DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck", _maxWidth);    
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            StateHasChanged();
+            UpdatePagedTrucks();
+        }
+    }
+}
