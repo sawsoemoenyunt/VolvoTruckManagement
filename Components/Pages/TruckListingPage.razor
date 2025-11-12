@@ -121,16 +121,13 @@ else
 
     private void ViewDetails(Truck truck)
     {
-        TruckService.DeleteTruck(truck.TruckNumber);
-        StateHasChanged();
-        UpdatePagedTrucks();
-        // You can open a dialog or navigate to a details page
-        Console.WriteLine($"Viewing truck: {truck.TruckNumber} - {truck.Brand}");
+        
     }
 
     private async Task AddNewTruck()
     {
-        var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck");    
+        DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck", _maxWidth);    
         var result = await dialog.Result;
 
         if (!result.Canceled)

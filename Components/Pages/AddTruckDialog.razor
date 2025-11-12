@@ -37,7 +37,7 @@
                                MaxDate="DateTime.Today" MinDate="@minBuildYear"
                                Required="true" RequiredError="Build year is required" 
                                DateChanged="OnBuildDateChanged" 
-                               OpenTo="OpenTo.Year" Views="Views.Year" />
+                               OpenTo="OpenTo.Year" Views="Views.Year" FixMonth="1" FixDay="1" DateFormat="yyyy" />
 
                 @if (!string.IsNullOrEmpty(buildDateError))
                 {
@@ -59,7 +59,7 @@
 
     <DialogActions>
         <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
-        <MudButton Color="Color.Dark" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Dark" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
