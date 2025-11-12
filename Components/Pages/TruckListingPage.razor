@@ -3,29 +3,33 @@
 @using VolvoTruckManagement.Services
 @inject MudBlazor.IDialogService DialogService
 @inject IServiceProvider ServiceProvider
+@inject MudBlazor.ISnackbar Snackbar
 
 <PageTitle>Trucks</PageTitle>
 <MudBreadcrumbs Items="_breadCrumbitems"></MudBreadcrumbs>
 <MudText Typo="Typo.h3" GutterBottom="true">Trucks</MudText>
-<MudGrid>
-    <MudItem xs="4">
-        <MudTextField @bind-Value="Search" Label="Search" Variant="Variant.Outlined"
-                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
-                      AdornmentColor="Color.Dark" />
-    </MudItem>
-    <MudItem xs="2">
-        <MudButton Variant="Variant.Outlined" Color="Color.Dark">
-            <MudIcon Icon="@Icons.Material.Filled.FilterList" />
-            Filter
-        </MudButton>
-    </MudItem>
-    <MudItem xs="6" Class="d-flex justify-end">
-        <MudButton @onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
-            Add New Truck
-        </MudButton>
-    </MudItem>
-</MudGrid>
+@if (Trucks.Count > 0)
+{
 
+    <MudGrid>
+        <MudItem xs="4">
+            <MudTextField @bind-Value="Search" Label="Search" Variant="Variant.Outlined"
+            Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+            AdornmentColor="Color.Dark" />
+        </MudItem>
+        <MudItem xs="2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Dark">
+                <MudIcon Icon="@Icons.Material.Filled.FilterList" />
+                Filter
+            </MudButton>
+        </MudItem>
+        <MudItem xs="6" Class="d-flex justify-end">
+            <MudButton @onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
+                Add New Truck
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+}
 <MudSpacer />
 <MudDivider Class="mb-4 my-2" />
 
@@ -33,10 +37,19 @@
 
 {
 
-    <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary" Class="mt-6">
-        There are no trucks registered yet. You can start by clicking the Add New Truck
-        button to add your first truck.
-    </MudText>
+    <MudPaper Class="d-flex flex-column align-center justify-center p-6 mt-6" Elevation="2" Style="max-width: 500px; margin: auto; padding: 50px">
+        <MudIcon Icon="@Icons.Material.Filled.DirectionsBusFilled" Size="Size.Large" Color="Color.Dark" Class="mb-2" />
+        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark" Class="mb-2">
+            No trucks registered yet
+        </MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Primary" Class="mb-4">
+            You can start by clicking the button below to add your first truck.
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="AddNewTruck">
+            Add New Truck
+        </MudButton>
+    </MudPaper>
+
 
 }
 else
@@ -56,7 +69,10 @@ else
                         <MudText><b>Build Year:</b> @truck.BuildDate</MudText>
                         @if (!string.IsNullOrWhiteSpace(truck.Comment))
                         {
-                            <MudText><b>Comment:</b> @truck.Comment</MudText>
+                            <MudText Class="text-truncate" Style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <b>Comment:</b> @truck.Comment
+                            </MudText>
+
                         }
                     </MudCardContent>
 
@@ -155,7 +171,7 @@ else
     private async Task ViewDetails(Truck truck)
     {
         // Dialog configuration for size and layout
-        DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+        DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true, CloseButton = true };
 
         // Pass the selected truck to the detail dialog as a parameter
         var parameters = new DialogParameters<TruckDetailDialog>
@@ -176,19 +192,31 @@ else
     /// </summary>
     private async Task AddNewTruck()
     {
-        // Dialog configuration for size and layout
-        DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
-
-        // Open the Add Truck dialog
-        var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck", _maxWidth);
-        var result = await dialog.Result;
-
-        // If the dialog wasn't canceled, refresh the list and UI
-        if (!result.Canceled)
+        // Check if we have reached the maximum truck number
+        try
         {
-            StateHasChanged();
-            UpdatePagedTrucks();
+            int nextTruckNumber = TruckService.GetNextAvailableUniqueTruckNumber();
+
+            // Dialog configuration for size and layout
+            DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true, CloseButton = true };
+
+            // Open the Add Truck dialog
+            var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck", _maxWidth);
+            var result = await dialog.Result;
+
+            // If the dialog wasn't canceled, refresh the list and UI
+            if (!result.Canceled)
+            {
+                StateHasChanged();
+                UpdatePagedTrucks();
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Show a user-friendly message using MudSnackbar
+            Snackbar.Add(ex.Message, Severity.Warning);
         }
     }
+
 }
 

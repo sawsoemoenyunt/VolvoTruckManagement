@@ -18,7 +18,7 @@
 
     <DialogActions>
         <MudButton Color="Color.Error" OnClick="ConfirmDelete">Delete</MudButton>
-        <MudButton Color="Color.Dark" OnClick="Cancel">Close</MudButton>
+        <MudButton Color="Color.Dark" Variant="Variant.Filled" OnClick="Cancel">Close</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -26,19 +26,22 @@
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
     [Parameter] public Truck Truck { get; set; }
 
-    private async void ConfirmDelete()
-    {
-        // bool? result = await MudDialog.ShowMessageBox(
-        //     "Confirm Delete",
-        //     $"Are you sure you want to delete truck #{Truck.TruckNumber}?",
-        //     yesText: "Yes", cancelText: "No");
+    [Inject] private IDialogService DialogService { get; set; }
 
-        // if (result == true)
-        // {
-        //     TruckService.DeleteTruck(Truck.TruckNumber);
-        //     Snackbar.Add($"Truck #{Truck.TruckNumber} deleted successfully!", Severity.Success);
-        //     MudDialog.Close(DialogResult.Ok(true));
-        // }
+    private async Task ConfirmDelete()
+    {
+        // Optional: use IDialogService.ShowMessageBox for popup confirmation
+        var result = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            $"Are you sure you want to delete truck #{Truck.TruckNumber}. VIN{Truck.VIN}?",
+            yesText: "Yes", cancelText: "No");
+
+        if (result == true)
+        {
+            TruckService.DeleteTruck(Truck.TruckNumber);
+            Snackbar.Add($"Truck #{Truck.TruckNumber} deleted successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
     }
 
     private void Cancel() => MudDialog.Cancel();
