@@ -1,5 +1,8 @@
 ﻿@page "/"
 @using VolvoTruckManagement.Model
+@using VolvoTruckManagement.Services
+@inject MudBlazor.IDialogService DialogService
+@inject IServiceProvider ServiceProvider
 
 <PageTitle>Trucks</PageTitle>
 <MudBreadcrumbs Items="_breadCrumbitems"></MudBreadcrumbs>
@@ -17,7 +20,7 @@
         </MudButton>
     </MudItem>
     <MudItem xs="6" Class="d-flex justify-end">
-        <MudButton onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
+        <MudButton @onclick="AddNewTruck" Variant="Variant.Filled" Color="Color.Dark" Class="align-self-center" Size="Size.Large">
             Add New Truck
         </MudButton>
     </MudItem>
@@ -39,7 +42,7 @@
 else
 {
     <MudGrid>
-        @foreach (var truck in Trucks)
+        @foreach (var truck in pagedTrucks)
         {
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudCard Class="h-full shadow-md hover:shadow-lg transition-all">
@@ -65,11 +68,16 @@ else
                 </MudCard>
             </MudItem>
         }
+        
     </MudGrid>
-}
+    <MudDivider Class="mb-4 my-2" />
+    <MudPagination Color="Color.Primary" Count="@totalPages" SelectedChanged="PageChanged" />
+
+}
 
 
 @code {
+    private ITruckService TruckService;
     public string Search { get; set; }
     private List<BreadcrumbItem> _breadCrumbitems = new()
     {
@@ -79,37 +87,50 @@ else
     public int Spacing { get; set; } = 6;
 
     private List<Truck> Trucks = new();
+    private List<Truck> pagedTrucks = new();
+    private int currentPage = 1;
+    private int pageSize = 6; // Number of cards per page
+    private int totalPages => (int)Math.Ceiling((double)Trucks.Count / pageSize);
 
     protected override void OnInitialized()
     {
         // Simulate dynamic data (could come from database or API)
-        Trucks = new List<Truck>
-        {
-            new() { TruckNumber = 101, Brand = "Volvo FH16", VIN = "1HGBH41JXMN109186", BuildDate = 2020, Comment = "Long haul unit" },
-            new() { TruckNumber = 102, Brand = "Volvo FMX", VIN = "2FTRX18W1XCA12345", BuildDate = 2019, Comment = "Construction truck" },
-            new() { TruckNumber = 103, Brand = "Volvo FE", VIN = "3N1BC13E88L456789", BuildDate = 2022, Comment = "City delivery" },
-            new() { TruckNumber = 101, Brand = "Volvo FH16", VIN = "1HGBH41JXMN109186", BuildDate = 2020, Comment = "Long haul unit" },
-            new() { TruckNumber = 102, Brand = "Volvo FMX", VIN = "2FTRX18W1XCA12345", BuildDate = 2019, Comment = "Construction truck" },
-            new() { TruckNumber = 103, Brand = "Volvo FE", VIN = "3N1BC13E88L456789", BuildDate = 2022, Comment = "City delivery" },
-        };
+        // Trucks = TruckService.GetTrucks();
+        TruckService = ServiceProvider.GetRequiredService<ITruckService>();
+        Trucks = TruckService.GetTrucks();
+    }
+
+    private void PageChanged(int i)
+    {
+        currentPage = i;
+        UpdatePagedTrucks();
+    }
+
+
+    private async void UpdatePagedTrucks()
+    {
+        Console.WriteLine("Current Page" + (currentPage - 1));
+        pagedTrucks = Trucks.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
     }
 
     private void ViewDetails(Truck truck)
     {
+        TruckService.DeleteTruck(truck.TruckNumber);
+        StateHasChanged();
+        UpdatePagedTrucks();
         // You can open a dialog or navigate to a details page
         Console.WriteLine($"Viewing truck: {truck.TruckNumber} - {truck.Brand}");
     }
 
-    private void AddNewTruck()
+    private async Task AddNewTruck()
     {
-        // Example: add a dummy truck for now
-        Trucks.Add(new Truck
+        var dialog = await DialogService.ShowAsync<AddTruckDialog>("Add New Truck");    
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
         {
-            TruckNumber = 111,
-            Brand = "Volvo",
-            VIN = "1HGBH41JXMN109186",
-            BuildDate = 2024,
-            Comment = "New Truck"
-        });
+            StateHasChanged();
+            UpdatePagedTrucks();
+        }
     }
 }
