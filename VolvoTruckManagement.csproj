@@ -10,7 +10,6 @@
     <Content Include="Model\Truck.cs" />
   </ItemGroup>
 
-
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.*" />
   </ItemGroup>

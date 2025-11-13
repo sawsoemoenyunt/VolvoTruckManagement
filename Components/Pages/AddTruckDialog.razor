@@ -6,55 +6,63 @@
 <MudDialog FullWidth="true" MaxWidth="MaxWidth.Small">
     <DialogContent>
         <MudForm @ref="form" Model="@Truck" @bind-IsValid="isValid">
-            <MudStack Spacing="2">
+    <MudStack Spacing="2">
 
-                <!-- Truck Number (auto-generated) -->
-                <MudTextField T="int" Label="Truck Number"
-                              @bind-Value="Truck.TruckNumber"
-                              ReadOnly="true" Disabled="true" />
+        <!-- Truck Number (auto-generated) -->
+        <MudTextField T="int" Label="Truck Number"
+                      @bind-Value="Truck.TruckNumber"
+                      ReadOnly="true" Disabled="true"
+                      HelperText="Automatically generated, cannot be edited" />
 
-                <!-- Brand Dropdown -->
-                <MudSelect @bind-Value="Truck.Brand" Label="Brand" Required="true" RequiredError="Brand is required">
-                    <MudSelectItem Value="@("Volvo")">Volvo</MudSelectItem>
-                    <MudSelectItem Value="@("Mack")">Mack</MudSelectItem>
-                    <MudSelectItem Value="@("MD")">MD</MudSelectItem>
-                </MudSelect>
+        <!-- Brand Dropdown -->
+        <MudSelect @bind-Value="Truck.Brand" Label="Brand" Required="true" RequiredError="Brand is required"
+                   HelperText="Select the manufacturer of the truck">
+            <MudSelectItem Value="@("Volvo")">Volvo</MudSelectItem>
+            <MudSelectItem Value="@("Mack")">Mack</MudSelectItem>
+            <MudSelectItem Value="@("MD")">MD</MudSelectItem>
+        </MudSelect>
 
-                <!-- VIN TextField -->
-                <MudTextField Label="VIN" @bind-Value="Truck.VIN" Required="true"
-                              Immediate="true" OnBlur="ValidateVIN">
-                    <AdornmentEnd>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">17 characters, letters & numbers, exclude I/O/Q</MudText>
-                    </AdornmentEnd>
-                </MudTextField>
-                @if (!string.IsNullOrEmpty(vinError))
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Error">@vinError</MudText>
-                }
+        <!-- VIN TextField -->
+        <MudTextField Label="VIN" @bind-Value="Truck.VIN" Required="true"
+                      Immediate="true" OnBlur="ValidateVIN"
+                      Placeholder="Enter 17-character VIN"
+                      HelperText="17 characters: letters & numbers, exclude I/O/Q">
+            <AdornmentEnd>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Primary" 
+                               OnClick="@(() => ShowVINInfo())" />
+            </AdornmentEnd>
+        </MudTextField>
+        @if (!string.IsNullOrEmpty(vinError))
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@vinError</MudText>
+        }
 
-                <!-- Build Date Year Picker -->
-                <MudDatePicker Label="Build Year" PickerVariant="PickerVariant.Inline"
-                               MaxDate="DateTime.Today" MinDate="@minBuildYear"
-                               Required="true" RequiredError="Build year is required" 
-                               DateChanged="OnBuildDateChanged" 
-                               OpenTo="OpenTo.Year" Views="Views.Year" FixMonth="1" FixDay="1" DateFormat="yyyy" />
+        <!-- Build Date Year Picker -->
+        <MudDatePicker Label="Build Year" PickerVariant="PickerVariant.Inline"
+                       MaxDate="DateTime.Today" MinDate="@minBuildYear"
+                       Required="true" RequiredError="Build year is required" 
+                       DateChanged="OnBuildDateChanged" 
+                       OpenTo="OpenTo.Year" Views="Views.Year" FixMonth="1" FixDay="1" DateFormat="yyyy"
+                       HelperText="Select the year the truck was built" />
 
-                @if (!string.IsNullOrEmpty(buildDateError))
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Error">@buildDateError</MudText>
-                }
+        @if (!string.IsNullOrEmpty(buildDateError))
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@buildDateError</MudText>
+        }
 
-                <!-- Comment -->
-                <MudTextField @bind-Value="Truck.Comment" Label="Comment" Lines="5" 
-                              Immediate="true" OnBlur="ValidateComment" />
+        <!-- Comment -->
+        <MudTextField @bind-Value="Truck.Comment" Label="Comment" Lines="5" 
+                      Immediate="true" OnBlur="ValidateComment"
+                      Placeholder="Optional notes or remarks about this truck"
+                      HelperText="You can add additional information about the truck here" />
 
-                @if (!string.IsNullOrEmpty(commentError))
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Error">@commentError</MudText>
-                }
+        @if (!string.IsNullOrEmpty(commentError))
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@commentError</MudText>
+        }
 
-            </MudStack>
-        </MudForm>
+    </MudStack>
+</MudForm>
     </DialogContent>
 
     <DialogActions>
@@ -85,6 +93,12 @@
     {
         // Auto-generate next available truck number
         Truck.TruckNumber = TruckService.GetNextAvailableUniqueTruckNumber();
+    }
+
+    private void ShowVINInfo()
+    {
+        // Optional: Show tooltip or snackbar with VIN rules
+        Snackbar.Add("VIN must be 17 characters, letters & numbers only, exclude I/O/Q.", Severity.Info);
     }
 
     private void ValidateVIN(FocusEventArgs args)
