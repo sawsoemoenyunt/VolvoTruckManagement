@@ -14,14 +14,14 @@
     <MudGrid AlignItems="Center" Class="mb-4">
         <!-- Search Field -->
         <MudItem xs="12" sm="6" md="4">
-            <MudTextField @bind-Value="Search"
+            <MudTextField T="string" 
                           Label="Search"
                           Variant="Variant.Outlined"
                           Adornment="Adornment.End"
                           AdornmentIcon="@Icons.Material.Filled.Search"
                           AdornmentColor="Color.Dark"
                           Immediate="true"
-                          OnImmediateValueChanged="OnSearchChanged" />
+                          ValueChanged="OnSearchChanged" Placeholder="Search by VIN, Brand or Build Year"/>
         </MudItem>
 
         <!-- Sort Dropdown -->
@@ -88,8 +88,6 @@
             Add New Truck
         </MudButton>
     </MudPaper>
-
-
 }
 else
 {
@@ -197,6 +195,7 @@ else
 
     private void OnSearchChanged(string value)
     {
+        Search = value;
         currentPage = 1;
         UpdatePagedTrucks();
     }
@@ -247,6 +246,7 @@ else
             .Where(t => string.IsNullOrWhiteSpace(Search)
                         || t.Brand.Contains(Search, StringComparison.OrdinalIgnoreCase)
                         || t.VIN.Contains(Search, StringComparison.OrdinalIgnoreCase)
+                        || t.BuildDate.ToString().Contains(Search, StringComparison.OrdinalIgnoreCase)
                         || t.TruckNumber.ToString().Contains(Search))
             .ToList();
 
