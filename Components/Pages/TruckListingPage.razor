@@ -25,27 +25,40 @@
         </MudItem>
 
         <!-- Sort Dropdown -->
-        <MudItem xs="12" sm="3" md="4">
-            <MudSelect Label="Sort By" @bind-Value="sortField" Variant="Variant.Outlined" OnValueChanged="OnSortChanged">
-                <MudSelectItem Value="@("TruckNumber")">Truck #</MudSelectItem>
-                <MudSelectItem Value="@("Brand")">Brand</MudSelectItem>
-                <MudSelectItem Value="@("Year")">Year</MudSelectItem>
-            </MudSelect>
+        <MudItem xs="12" sm="6" md="4">
+            <div class="d-flex align-center gap-2">
+                <MudSelect T="string"
+                           Label="Sort By"
+                           @bind-Value="sortField"
+                           @bind-Value:event="onchange"
+                           ValueChanged="OnSortChanged"
+                           Variant="Variant.Outlined"
+                           Class="flex-grow-1">
+                    <MudSelectItem Value="@("TruckNumber")">Truck Number</MudSelectItem>
+                    <MudSelectItem Value="@("Brand")">Brand</MudSelectItem>
+                    <MudSelectItem Value="@("BuildDate")">Year</MudSelectItem>
+                </MudSelect>
+
+                <MudTooltip Text="Toggle sort order (ascending/descending)">
+                    <MudButton Variant="Variant.Outlined"
+                               Size="Size.Small"
+                               Color="Color.Transparent"
+                               OnClick="ToggleSortOrder"
+                               AriaLabel="Toggle sort order">
+                        @if (sortAscending)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" />
+                        }
+                    </MudButton>
+                </MudTooltip>
+            </div>
         </MudItem>
 
-        <!-- Sort Order Toggle -->
-        @* <MudItem xs="12" sm="3" md="2" Class="d-flex">
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ToggleSortOrder" Class="align-self-center">
-                @if (sortAscending)
-                {
-                    <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" />
-                }
-                else
-                {
-                    <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" />
-                }
-            </MudButton>
-        </MudItem> *@
+
 
         <!-- Add New Truck Button -->
         <MudItem xs="12" sm="12" md="4" Class="d-flex justify-end">
@@ -175,9 +188,9 @@ else
         UpdatePagedTrucks();
     }
 
-    private void OnSortChanged(string field)
+    private void OnSortChanged(string value)
     {
-        sortField = field;
+        sortField = value;
         currentPage = 1;
         UpdatePagedTrucks();
     }
