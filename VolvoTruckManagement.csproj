@@ -10,6 +10,10 @@
     <Content Include="Model\Truck.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\volvo_spread_word_mark.svg" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.*" />
