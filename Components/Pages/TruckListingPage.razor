@@ -294,6 +294,11 @@ else
 
         // Await the result (e.g., close or update)
         var result = await dialog.Result;
+        if(!result.Canceled)
+        {
+            StateHasChanged();
+            UpdatePagedTrucks();
+        };
     }
 
     /// <summary>
