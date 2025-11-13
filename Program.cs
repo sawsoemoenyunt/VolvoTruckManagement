@@ -7,9 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add MudBlazor services
 builder.Services.AddMudServices();
 
-// Register TruckService for DI
-builder.Services.AddSingleton<ITruckService,TruckService>();
-
+// Register the TruckService as a singleton so a single shared instance 
+// is used across the entire app for managing in-memory truck data.
+builder.Services.AddSingleton<ITruckService, TruckService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
